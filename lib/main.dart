@@ -1,3 +1,4 @@
+import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -59,13 +60,30 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _incrementCounter() {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
       _counter++;
     });
+  }
+
+  void _incrementCounter1000() {
+    setState(() {
+      _counter+=1000;
+    });
+  }
+
+  void _incrementCounter10000() {
+    setState(() {
+      _counter+=10000;
+    });
+  }
+
+  DataRow2 _row(int index) {
+    return DataRow2(
+      cells: <DataCell>[
+        DataCell(Text('${index}, 1')),
+        DataCell(Text('${index}, 2')),
+        DataCell(Text('${index}, 3')),
+      ],
+    );
   }
 
   @override
@@ -77,49 +95,100 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+        appBar: AppBar(
+          // TRY THIS: Try changing the color here to a specific color (to
+          // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
+          // change color while the other colors stay the same.
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          // Here we take the value from the MyHomePage object that was created by
+          // the App.build method, and use it to set our appbar title.
+          title: Text(widget.title),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Theme(
+              // Using themes to override scroll bar appearence, note that iOS scrollbars do not support color overrides
+              data: ThemeData(
+                  iconTheme: const IconThemeData(color: Colors.white),
+                  scrollbarTheme: ScrollbarThemeData(
+                    thickness: WidgetStateProperty.all(5),
+                    // thumbVisibility: MaterialStateProperty.all(true),
+                    // thumbColor: MaterialStateProperty.all<Color>(Colors.yellow)
+                  )),
+              child: DataTable2(
+                // Forcing all scrollbars to be visible, alternatively themes can be used (see above)
+                headingRowColor:
+                    WidgetStateColor.resolveWith((states) => Colors.grey[850]!),
+                headingTextStyle: const TextStyle(color: Colors.white),
+                headingCheckboxTheme: const CheckboxThemeData(
+                    side: BorderSide(color: Colors.white, width: 2.0)),
+                //checkboxAlignment: Alignment.topLeft,
+                isHorizontalScrollBarVisible: true,
+                isVerticalScrollBarVisible: true,
+                columnSpacing: 12,
+                horizontalMargin: 12,
+                sortArrowBuilder: null,
+                border: TableBorder(
+                    top: const BorderSide(color: Colors.black),
+                    bottom: BorderSide(color: Colors.grey[300]!),
+                    left: BorderSide(color: Colors.grey[300]!),
+                    right: BorderSide(color: Colors.grey[300]!),
+                    verticalInside: BorderSide(color: Colors.grey[300]!),
+                    horizontalInside:
+                        const BorderSide(color: Colors.grey, width: 1)),
+                dividerThickness: 1,
+                // this one will be ignored if [border] is set above
+                bottomMargin: 10,
+                minWidth: 900,
+                columns: const [
+                  DataColumn2(
+                    label: Text('Col1'),
+                    size: ColumnSize.S,
+                    // example of fixed 1st row
+                    fixedWidth: 200,
+                  ),
+                  DataColumn2(
+                    label: Text('Col2'),
+                    size: ColumnSize.S,
+                  ),
+                  DataColumn2(
+                    label: Text('Col3'),
+                  ),
+                ],
+                empty: Center(
+                    child: Container(
+                        padding: const EdgeInsets.all(20),
+                        color: Colors.grey[200],
+                        child: const Text('No data'))),
+                rows: List<DataRow2>.generate(_counter, (index) => _row(index)),
+              )),
+        ),
+        floatingActionButton: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+          FloatingActionButton(
+            onPressed: () => setState(() {
+                _counter++;
+            }),
+            tooltip: 'Increment',
+            child: const Icon(Icons.add),
+          ),
+          // This trailing comma makes auto-formatting nicer for build methods.
+          FloatingActionButton(
+            onPressed: () => setState(() {
+              _counter+=1000;
+            }),
+            tooltip: 'Plus 1000',
+            child: const Icon(Icons.one_k),
+          ),
+          FloatingActionButton(
+            onPressed: () => setState(() {
+              _counter = 0;
+            }),
+            tooltip: 'Clear',
+            child: const Icon(Icons.clear),
+          ),
+          // This trailing comma makes auto-formatting nicer for build methods.
+        ]));
   }
 }
