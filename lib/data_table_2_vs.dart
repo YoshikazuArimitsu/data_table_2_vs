@@ -110,6 +110,7 @@ class DataTable2Vs extends StatefulWidget {
 
 class _DataTable2VsState extends State<DataTable2Vs> {
   int startRow = 0;
+  int prevRows = 0;
   late ScrollController scrollController;
 
   @override
@@ -117,9 +118,7 @@ class _DataTable2VsState extends State<DataTable2Vs> {
     super.initState();
 
     // ScrollControllerが無ければ作ってリスナー追加
-    scrollController = widget.scrollController ?? ScrollController(
-      onAttach: onAttach
-    );
+    scrollController = widget.scrollController ?? ScrollController();
     scrollController.addListener(onScroll);
   }
 
@@ -130,10 +129,6 @@ class _DataTable2VsState extends State<DataTable2Vs> {
       scrollController.dispose();
     }
     super.dispose();
-  }
-
-  void onAttach(ScrollPosition position) {
-
   }
 
   void onScroll() {
@@ -184,7 +179,18 @@ class _DataTable2VsState extends State<DataTable2Vs> {
 
   @override
   Widget build(BuildContext context) {
+    var _startRow = startRow;
     int endRow = math.min(startRow + widget.pageSize, widget.rows.length);
+    debugPrint('build: rows=${prevRows} -> ${widget.rows.length}, dispRows($startRow ~ $endRow)');
+
+    if(prevRows < widget.rows.length && startRow == widget.rows.length - widget.pageSize) {
+      _startRow = startRow + 1;
+    }
+
+    setState(() {
+      startRow = _startRow;
+      prevRows = widget.rows.length;
+    });
 
     return DataTable2(
       sortColumnIndex : widget.sortColumnIndex,
