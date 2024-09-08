@@ -116,45 +116,68 @@ class _DataTable2VsState extends State<DataTable2Vs> {
   void initState() {
     super.initState();
 
-    scrollController = widget.scrollController ?? ScrollController();
+    // ScrollControllerが無ければ作ってリスナー追加
+    scrollController = widget.scrollController ?? ScrollController(
+      onAttach: onAttach
+    );
     scrollController.addListener(onScroll);
   }
 
   @override
   void dispose() {
+    // ScrollController作っていれば解放
     if(widget.scrollController == null) {
       scrollController.dispose();
     }
     super.dispose();
   }
 
+  void onAttach(ScrollPosition position) {
+
+  }
+
   void onScroll() {
-    final _startRow = startRow;
+    if (widget.rows.length <= widget.pageSize) {
+      // 仮想ページング不要
+      return;
+    }
+
+    final prevStartRow = startRow;
     final offset = scrollController.offset;
-    final scrollExtent = (scrollController.position.maxScrollExtent - scrollController.position.minScrollExtent);
-    final extentByRow = scrollExtent / widget.pageSize;
+    final totalExtent = (scrollController.position.maxScrollExtent - scrollController.position.minScrollExtent)
+      + scrollController.position.viewportDimension;
+    final extentByRow = totalExtent / widget.pageSize;
+
+    debugPrint('offset: $offset, extent:${scrollController.position.minScrollExtent} ~ ${scrollController.position.maxScrollExtent}');
+    debugPrint('extentByRow: $extentByRow, dimension:${scrollController.position.viewportDimension}');
 
     // ↑
     if(startRow > 0) {
       if(offset <= scrollController.position.minScrollExtent) {
+        // 先頭行を pageSize / 2 行スライド
         final newStartRow = math.max(startRow - widget.pageSize ~/ 2, 0);
         setState(() {
           startRow = newStartRow;
         });
 
-        scrollController.jumpTo(scrollController.offset + (_startRow - newStartRow) * extentByRow);
+        // スライドした分+1行分スクロール位置をずらす
+        scrollController.jumpTo(scrollController.offset + (prevStartRow - newStartRow) * extentByRow
+          - extentByRow);
       }
     }
 
     // ↓
     if(startRow < widget.rows.length - widget.pageSize) {
       if(offset >= scrollController.position.maxScrollExtent) {
+        // 先頭行を pageSize / 2 行スライド
         final newStartRow = math.min(startRow + widget.pageSize ~/ 2, widget.rows.length - widget.pageSize);
         setState(() {
           startRow = newStartRow;
         });
 
-        scrollController.jumpTo(scrollController.offset + (_startRow - newStartRow) * extentByRow);
+        // スライド分+1行分スクロール位置をずらす
+        scrollController.jumpTo(scrollController.offset + (prevStartRow - newStartRow) * extentByRow
+          + extentByRow);
       }
     }
   }
